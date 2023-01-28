@@ -1,9 +1,11 @@
+var cred = require("./cred.js")
+
 class API {
     constructor(db){
         this.db = db
     }
 
-    call(req, res) {
+    async call(req, res) {
 
         var {body} = req
         var self = this
@@ -12,9 +14,12 @@ class API {
         switch(req.get("endpoint")){
 
             case "/send":
-
-               
+                this.sendOtp(req, res)
                 break    
+
+            case "/verify":
+                this.verifyOtp(req, res)
+                break
 
             default:
                 res.status(404)
@@ -22,11 +27,33 @@ class API {
         }
     }
 
-    async sendOtp(req){
+    async sendOtp(req, res){
         const { id, phone, expiry, otpLength } = req.body
         const otp = this.createOtp(otpLength)
         var err = await this.storeOtp(otp, expiry, id, phone)
+        if(err){
+            return err
+        }
+        this.sendWATIMessage(otp, phone, res)
+    }
 
+    verifyOtp(req, res){
+        const { id, otp } = req.body
+        var query = `select otp from otp where id='${id}'`
+        this.db.execQuery(query)
+        .then((result) => {
+            if(result.length==0){
+                res.status(404)
+                res.send(JSON.stringify({err: "OTP not generated"}))
+            }else{
+                if(result[0].otp==otp){
+                    res.send()
+                }else{
+                    res.status(403)
+                    res.send(JSON.stringify({err: "OTP mismatch"}))
+                }
+            }
+        })
     }
 
     createOtp(len){
@@ -35,9 +62,10 @@ class API {
     }
 
     async storeOtp(otp, expiry, id, phone){
+        expiry = expiry || 300
         var query = `insert into otp (id, phone, otp, expiry) values("${id}","${phone}","${otp}", now()+ interval ${expiry} second)
-        on duplicate key update otp="${otp}", expiry=now()+ interval ${expiry} second`
-        self.execQuery(query)
+        on duplicate key update otp="${otp}", expiry=now()+ interval ${expiry} second, phone="${phone}"`
+        this.db.execQuery(query)
         .then((result) => {
             if(result.affectedRows==0){
                 return new error("No rows affected")
@@ -45,15 +73,26 @@ class API {
         })
     }
 
-
-    execQuery(q){
-        return new Promise((resolve, reject) => {
-            this.db.query(q, (e, result) => {
-                if (e) {
-                    return reject(e)
-                };  
-                resolve(result)
-            });
+    sendWATIMessage(otp, phone, res){
+        fetch(`${cred.wati.url}?whatsappNumber=91${phone}`, {
+            method: 'POST',
+            headers: {
+                'content-type': 'text/json',
+                Authorization: cred.wati.auth
+            },
+            body: JSON.stringify({
+                parameters: [{name: 'otp', value: otp}],
+                broadcast_name: 'otp',
+                template_name: 'otp'
+            })
+        })
+        .then(res => res.json())
+        .then(json => {
+            res.send(json)
+        })
+        .catch(err => {
+            res.status(500)
+            res.send(JSON.stringify({err}))
         });
     }
 
@@ -62,7 +101,5 @@ class API {
         res.send({"error":msg})
     }
 }
-
-
 
 module.exports = API
