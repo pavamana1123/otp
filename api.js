@@ -1,13 +1,13 @@
 var cred = require("./cred.js")
 
 class API {
-    constructor(db){
+    constructor(db, mail){
         this.db = db
+        this.mail = mail
     }
 
     async call(req, res) {
 
-        var {body} = req
         var self = this
         console.log(`api - ${req.get("endpoint")}`)
         
@@ -28,13 +28,28 @@ class API {
     }
 
     async sendOtp(req, res){
-        const { id, phone, expiry, otpLength } = req.body
+        const { id, phone, expiry, otpLength, email } = req.body
         const otp = this.createOtp(otpLength)
         var err = await this.storeOtp(otp, expiry, id, phone)
         if(err){
             return err
         }
-        this.sendWATIMessage(otp, phone, res)
+        if(email){
+            try {
+                await this.mail.send({
+                    from: 'admin@otp.iskconmysore.org',
+                    to: email,
+                    subject: 'OTP from ISKCON Mysore',
+                    text: `Hare Krishna!\nYour OTP is ${otp}`
+                })
+                res.send()
+            }catch(error){
+                this.sendError(res, 500, error)
+            }
+
+        }else{
+            this.sendWATIMessage(otp, phone, res)
+        }
     }
 
     verifyOtp(req, res){
