@@ -28,7 +28,7 @@ class API {
     }
 
     async sendOtp(req, res){
-        const { id, phone, expiry, otpLength, email } = req.body
+        const { id, phone, expiry, otpLength, email, title } = req.body
         const otp = this.createOtp(otpLength)
         var err = await this.storeOtp(otp, expiry, id, phone)
         if(err){
@@ -48,7 +48,7 @@ class API {
             }
 
         }else{
-            this.sendWATIMessage(otp, phone, res)
+            this.sendWhatsAppMessage(otp, phone, title || "OTP",  res)
         }
     }
 
@@ -88,17 +88,26 @@ class API {
         })
     }
 
-    sendWATIMessage(otp, phone, res){
-        fetch(`${cred.wati.url}?whatsappNumber=91${phone}`, {
+    sendWhatsAppMessage(otp, phoneNumber, title, res){
+        fetch(cred.whatsapp.url, {
             method: 'POST',
             headers: {
                 'content-type': 'text/json',
-                Authorization: cred.wati.auth
+                Authorization: cred.whatsapp.auth
             },
             body: JSON.stringify({
-                parameters: [{name: 'otp', value: otp}],
-                broadcast_name: 'otp',
-                template_name: 'otp'
+                countryCode: "+91",
+                phoneNumber,
+                type: "Template",
+                template: {
+                  name: "ekakalika_guhyapadam",
+                  languageCode: "en",
+                  headerValues: [title],
+                  bodyValues: [
+                    "OTP",
+                    otp
+                  ]
+                }
             })
         })
         .then(res => res.json())
