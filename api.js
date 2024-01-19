@@ -35,7 +35,7 @@ class API {
     async sendOtp(req, res){
         const { id, expiry, otpLength, target, title } = req.body
         const otp = this.createOtp(otpLength)
-        var err = await this.storeOtp(otp, expiry, id, phone)
+        var err = await this.storeOtp(otp, expiry, id, target)
         if(err){
             return err
         }
