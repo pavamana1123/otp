@@ -8,8 +8,13 @@ class API {
 
     async call(req, res) {
 
-        var self = this
         console.log(`api - ${req.get("endpoint")}`)
+
+        var reqAPIKey = req.get("api-key")
+        if(cred.apiKey != reqAPIKey){
+            this.sendError(res, 401, "API Key mismatch")
+            return
+        }
         
         switch(req.get("endpoint")){
 
