@@ -33,18 +33,18 @@ class API {
     }
 
     async sendOtp(req, res){
-        const { id, phone, expiry, otpLength, email, title } = req.body
+        const { id, expiry, otpLength, target, title } = req.body
         const otp = this.createOtp(otpLength)
         var err = await this.storeOtp(otp, expiry, id, phone)
         if(err){
             return err
         }
-        if(email){
+        if(target.includes("@")){
             try {
                 await this.mail.send({
                     from: 'admin@otp.iskconmysore.org',
-                    to: email,
-                    subject: 'OTP from ISKCON Mysore',
+                    to: target,
+                    subject: title || 'OTP from ISKCON Mysore',
                     text: `Hare Krishna!\nYour OTP is ${otp}`
                 })
                 res.send()
@@ -53,7 +53,7 @@ class API {
             }
 
         }else{
-            this.sendWhatsAppMessage(otp, phone, title || "OTP",  res)
+            this.sendWhatsAppMessage(otp, target, title || 'OTP from ISKCON Mysore',  res)
         }
     }
 
