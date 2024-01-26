@@ -1,4 +1,7 @@
 var cred = require("./cred.js")
+const axios = require("axios")
+
+var webhookStore = {}
 
 class API {
     constructor(db, mail){
@@ -15,8 +18,10 @@ class API {
             this.sendError(res, 401, "API Key mismatch")
             return
         }
+
+        var endpoint = req.query.endpoint || req.get("endpoint")
         
-        switch(req.get("endpoint")){
+        switch(endpoint){
 
             case "/send":
                 this.sendOtp(req, res)
@@ -26,9 +31,32 @@ class API {
                 this.verifyOtp(req, res)
                 break
 
+            case "/sent":
+                this.sentOtp(req)
+                break
+
             default:
                 res.status(404)
                 res.send()
+        }
+    }
+
+    async sentOtp(req){
+        const { data, type } = req.body
+        if(type="message_api_sent"){
+            const id = data.message.id
+            var res = webhookStore[id]
+            if(res){
+                const status = data.message.message_status
+                if(status=="Sent"){
+                    res.status(200)
+                    res.send()
+                }else{
+                    res.status(500)
+                    res.send(status)
+                }
+                webhookStore.delete(id) 
+            }
         }
     }
 
@@ -94,40 +122,39 @@ class API {
     }
 
     sendWhatsAppMessage(otp, phoneNumber, title, res){
-        fetch(cred.whatsapp.url, {
-            method: 'POST',
-            headers: {
-                'content-type': 'text/json',
-                Authorization: cred.whatsapp.auth
-            },
-            body: JSON.stringify({
+        axios.post(cred.whatsapp.url, 
+            {
                 countryCode: "+91",
                 phoneNumber,
                 type: "Template",
                 template: {
-                  name: "ekakalika_guhyapadam",
-                  languageCode: "en",
-                  headerValues: [title],
-                  bodyValues: [
-                    "OTP",
-                    otp
-                  ]
+                    name: "ekakalika_guhyapadam",
+                    languageCode: "en",
+                    headerValues: [title],
+                    bodyValues: [
+                        "OTP",
+                        otp
+                    ]
                 }
-            })
-        })
-        .then(res => res.json())
-        .then(json => {
-            res.send(json)
+            },
+            {
+                headers: {
+                    'content-type': 'text/json',
+                    Authorization: cred.whatsapp.auth
+                }
+            }
+        ).then(r => {
+            webhookStore[r.data.id]=res
         })
         .catch(err => {
-            res.status(500)
-            res.send(JSON.stringify({err}))
-        });
+            res.status(err.response.status)
+            res.send(err.response.data.message)
+        })
     }
 
     sendError(res, code, msg){
         res.status(code)
-        res.send({"error":msg})
+        res.send(msg)
     }
 }
 
