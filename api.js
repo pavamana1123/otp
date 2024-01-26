@@ -41,7 +41,7 @@ class API {
         }
     }
 
-    async sentOtp(req){
+    async sentOtp(req, response){
         const { data, type } = req.body
         if(type="message_api_sent"){
             const id = data.message.id
@@ -58,6 +58,8 @@ class API {
                 webhookStore.delete(id) 
             }
         }
+        response.status(200)
+        response.send()
     }
 
     async sendOtp(req, res){
