@@ -1,7 +1,20 @@
 var cred = require("./cred.js")
 const axios = require("axios")
+const moment = require("moment")
 
 var webhookStore = {}
+
+setInterval(()=>{
+    Object.keys(webhookStore).forEach(id=>{
+        var resObj = webhookStore[id]
+        if(moment().diff(resObj.time, 'minutes')>=2){
+            resObj.res.status(408)
+            resObj.res.send()
+            webhookStore.delete(id)
+        }
+    })
+}, 1000)
+
 
 class API {
     constructor(db, mail){
@@ -45,15 +58,15 @@ class API {
         const { data, type } = req.body
         if(type=="message_api_sent"){
             const id = data.message.id
-            var res = webhookStore[id]
-            if(res){
+            var resObj = webhookStore[id]
+            if(resObj){
                 const status = data.message.message_status
                 if(status=="Sent"){
-                    res.status(200)
-                    res.send()
+                    resObj.res.status(200)
+                    resObj.res.send()
                 }else{
-                    res.status(500)
-                    res.send(status)
+                    resObj.res.status(500)
+                    resObj.res.send(status)
                 }
                 webhookStore.delete(id) 
             }
@@ -146,7 +159,8 @@ class API {
                 }
             }
         ).then(r => {
-            webhookStore[r.data.id]=res
+            const time = moment()
+            webhookStore[r.data.id]={ time, res }
         })
         .catch(err => {
             res.status(err.response.status)
