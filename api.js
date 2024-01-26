@@ -11,8 +11,8 @@ class API {
 
     async call(req, res) {
 
-        console.log(`api - ${req.get("endpoint")}`)
         var endpoint = req.query.endpoint || req.get("endpoint")
+        console.log(`api - ${endpoint}`)
 
         var reqAPIKey = req.get("api-key")
         if(endpoint!="/sent" && cred.apiKey != reqAPIKey){
@@ -32,7 +32,7 @@ class API {
                 break
 
             case "/sent":
-                this.sentOtp(req)
+                this.sentOtp(req, res)
                 break
 
             default:
