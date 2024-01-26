@@ -43,7 +43,7 @@ class API {
 
     async sentOtp(req, response){
         const { data, type } = req.body
-        if(type="message_api_sent"){
+        if(type=="message_api_sent"){
             const id = data.message.id
             var res = webhookStore[id]
             if(res){
