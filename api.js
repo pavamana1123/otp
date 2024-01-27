@@ -13,7 +13,7 @@ setInterval(()=>{
             webhookStore.delete(id)
         }
     })
-}, 1000)
+}, 60*1000)
 
 
 class API {
