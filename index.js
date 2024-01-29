@@ -1,3 +1,10 @@
+const moment = require("moment")
+const consolas = console.log
+console.log = function (...args) {
+  const timestamp = new Date().toISOString()
+  consolas.apply(console, [`[${moment(timestamp).format("YY-MMM-DD HH:mm")}]`, ...args])
+}
+
 async function main() {
   const express = require('express')
   const axios = require('axios')
@@ -14,7 +21,7 @@ async function main() {
   cred.mysql.connectionLimit = 100
   cred.mysql.multipleStatements = true
 
-  var mysql = require('mysql');
+  var mysql = require('mysql')
   var db = new DB(mysql.createPool(cred.mysql))
   var mail = new Mail(cred.mail)
   await mail.verify()
@@ -49,11 +56,14 @@ async function main() {
     var endpoint = req.get("endpoint")
     var reqAPIKey = req.get("api-key")
 
+
     if(cred.apiKey == reqAPIKey){
       const { title, id, otp, target, len } = req.body
 
+      console.log(`${endpoint} - ${target} - ${id}`)
+
       if(endpoint=="/send"){
-        const otpGen = otpGenerator.generate(len||6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false });
+        const otpGen = otpGenerator.generate(len||6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false })
         sendOTP(target, title, otpGen)
         .then(r=>{
           db.storeOTP(id, otpGen, target)
