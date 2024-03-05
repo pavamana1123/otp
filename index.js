@@ -27,7 +27,7 @@ async function main() {
   await mail.verify()
 
   const wameURL = 'https://wame.iskconmysore.org'
-  const adminMail = 'admin@otp.iskconmysore.org'
+  const adminMail = 'otp@navabrindavan.org'
   const template = 'ekakalika_guhyapadam'
 
   const sendOTP = (target, title, otp) => {
