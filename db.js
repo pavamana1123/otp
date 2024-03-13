@@ -19,7 +19,7 @@ class DB {
         return new Promise((resolve, reject) => {
             this.db.query(
                 `insert into otp (id, target, otp, expiry) values("${id}","${target}","${otp}", now()+ interval ${expiry} second)
-                on duplicate key update expiry=now()+ interval ${expiry} second, target="${target}"`,
+                on duplicate key update otp="${otp}", expiry=now()+ interval ${expiry} second, target="${target}"`,
 
                 (error, result) => {
                     if(error){
