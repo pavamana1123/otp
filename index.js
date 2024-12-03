@@ -28,7 +28,7 @@ async function main() {
 
   const wameURL = 'https://wame.iskconmysore.org'
   const adminMail = 'otp@navabrindavan.org'
-  const template = 'otp'
+  const template = 'otp_in'
 
   const sendOTP = (target, title, otp) => {
     if (target.includes('@')) {
