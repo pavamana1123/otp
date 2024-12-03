@@ -11,7 +11,7 @@ async function main() {
   const otpGenerator = require('otp-generator')
 
   const app = express()
-  app.use(express.json()) 
+  app.use(express.json())
   const port = 4005
 
   var cred = require("./cred.js")
@@ -28,22 +28,22 @@ async function main() {
 
   const wameURL = 'https://wame.iskconmysore.org'
   const adminMail = 'otp@navabrindavan.org'
-  const template = 'ekakalika_guhyapadam'
+  const template = 'otp'
 
   const sendOTP = (target, title, otp) => {
-    if(target.includes('@')){
+    if (target.includes('@')) {
       return mail.send({
         from: adminMail,
         to: target,
         subject: title || 'OTP from ISKCON Mysore',
         text: `Hare Krishna!\nYour OTP is ${otp}`
       })
-    }else{
+    } else {
       return axios.post(wameURL, {
         phone: target,
         template,
-        headers: [title],
-        values: [ "OTP", otp ]
+        values: [otp],
+        buttons: { "0": [otp] }
       }, {
         headers: {
           "api-key": cred.wame.apiKey
@@ -52,41 +52,41 @@ async function main() {
     }
   }
 
-  app.post('/data', (req, res)=>{
+  app.post('/data', (req, res) => {
     var endpoint = req.get("endpoint")
     var reqAPIKey = req.get("api-key")
 
 
-    if(cred.apiKey == reqAPIKey){
+    if (cred.apiKey == reqAPIKey) {
       const { title, id, otp, target, len } = req.body
 
       console.log(`${endpoint} - ${target} - ${id}`)
 
-      if(endpoint=="/send"){
-        const otpGen = otpGenerator.generate(len||6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false })
+      if (endpoint == "/send") {
+        const otpGen = otpGenerator.generate(len || 6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false })
         sendOTP(target, title, otpGen)
-        .then(r=>{
-          db.storeOTP(id, otpGen, target)
-          .then(r=>{
-            res.status(200).send(r)
-          }).catch((err)=>{
-            res.status(500).send(err)
+          .then(r => {
+            db.storeOTP(id, otpGen, target)
+              .then(r => {
+                res.status(200).send(r)
+              }).catch((err) => {
+                res.status(500).send(err)
+              })
+          }).catch(err => {
+            console.log(err)
+            res.status(err.response.status).send(err.response.data.message)
           })
-        }).catch(err=>{
-          console.log(err)
-          res.status(err.response.status).send(err.response.data.message)
-        })
-      }else if(endpoint=="/verify"){
+      } else if (endpoint == "/verify") {
         db.verifyOTP(id, otp)
-        .then(r=>{
-          res.status(200).send(r)
-        }).catch(({status, error})=>{
-          res.status(status).send(error)
-        })
-      }else{
+          .then(r => {
+            res.status(200).send(r)
+          }).catch(({ status, error }) => {
+            res.status(status).send(error)
+          })
+      } else {
         res.status(400).send()
       }
-    }else{
+    } else {
       res.status(401).send()
     }
   })
@@ -97,13 +97,13 @@ async function main() {
 
   setInterval(() => {
     db.exec(`delete FROM iskconmy_otp.otp where expiry<=now();`)
-    .then((result) => {
-        if(result.affectedRows>0){
+      .then((result) => {
+        if (result.affectedRows > 0) {
           console.log(`${result.affectedRows} OTP expired.`)
         }
-    })
-    
-  }, 60*1000)
+      })
+
+  }, 60 * 1000)
 }
 
 main().catch((e) => {
