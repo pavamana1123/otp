@@ -24,7 +24,12 @@ async function main() {
   var mysql = require('mysql')
   var db = new DB(mysql.createPool(cred.mysql))
   var mail = new Mail(cred.mail)
-  await mail.verify()
+
+  try {
+    await mail.verify()
+  } catch (er) {
+    consolas("mail error:", er)
+  }
 
   const wameURL = 'https://wame.iskconmysore.org'
   const adminMail = 'otp@navabrindavan.org'
