@@ -16,35 +16,17 @@ async function main() {
 
   var cred = require("./cred.js")
   const DB = require("./db.js")
-  const Mail = require("./mail.js")
 
   cred.mysql.connectionLimit = 100
   cred.mysql.multipleStatements = true
 
   var mysql = require('mysql')
   var db = new DB(mysql.createPool(cred.mysql))
-  var mail = new Mail(cred.mail)
-
-  try {
-    await mail.verify()
-  } catch (er) {
-    consolas("mail error:", er)
-  }
 
   const wameURL = 'https://wame.iskconmysore.org'
-  const adminMail = 'otp@navabrindavan.org'
   const template = 'otp_in'
 
   const sendOTP = (target, title, otp) => {
-    if (target.includes('@')) {
-      return mail.send({
-        from: adminMail,
-        to: target,
-        subject: title || 'OTP from ISKCON Mysore',
-        text: `Hare Krishna!\nYour OTP is ${otp}`
-      })
-    } else {
-      console.log('Trying to send OTP through WhatsApp')
       return axios.post(wameURL, {
         phone: target,
         template,
@@ -55,7 +37,6 @@ async function main() {
           "api-key": cred.wame.apiKey
         }
       })
-    }
   }
 
   app.post('/data', (req, res) => {
