@@ -44,6 +44,7 @@ async function main() {
         text: `Hare Krishna!\nYour OTP is ${otp}`
       })
     } else {
+      console.log('Trying to send OTP through WhatsApp')
       return axios.post(wameURL, {
         phone: target,
         template,
