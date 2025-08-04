@@ -37,6 +37,8 @@ async function main() {
 
   const sendOTP = (target, title, otp, emails) => {
 
+    console.log(emails)
+
     if (emails) {
       return mail.send({
         from: adminMail,
