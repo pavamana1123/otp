@@ -37,7 +37,7 @@ async function main() {
 
   const sendOTP = (target, title, otp, emails) => {
 
-    if (emails) {
+    if (emails && emails.length) {
       return mail.send({
         from: adminMail,
         to: emails,
@@ -63,6 +63,10 @@ async function main() {
         headers: {
           "api-key": cred.wame.apiKey
         }
+      }).then(r => {
+        console.log('OTP sent')
+      }).catch(err => {
+        console.log('WA error:', err)
       })
     }
   }
