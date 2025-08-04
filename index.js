@@ -77,6 +77,8 @@ async function main() {
     if (cred.apiKey == reqAPIKey) {
       const { title, id, otp, target, len, emails } = req.body
 
+      console.log(req.body)
+
       console.log(`${endpoint} - ${target} - ${id}`)
 
       if (endpoint == "/send") {
