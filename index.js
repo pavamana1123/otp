@@ -63,10 +63,6 @@ async function main() {
         headers: {
           "api-key": cred.wame.apiKey
         }
-      }).then(r => {
-        console.log('OTP sent')
-      }).catch(err => {
-        console.log('WA error:', err)
       })
     }
   }
