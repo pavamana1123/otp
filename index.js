@@ -35,7 +35,17 @@ async function main() {
   const adminMail = 'otp@navabrindavan.org'
   const template = 'otp_in'
 
-  const sendOTP = (target, title, otp) => {
+  const sendOTP = (target, title, otp, emails) => {
+
+    if (emails) {
+      return mail.send({
+        from: adminMail,
+        to: emails,
+        subject: title || 'OTP from ISKCON Mysore',
+        text: `Hare Krishna!\nYour OTP is ${otp}`
+      })
+    }
+
     if (target.includes('@')) {
       return mail.send({
         from: adminMail,
@@ -63,13 +73,13 @@ async function main() {
 
 
     if (cred.apiKey == reqAPIKey) {
-      const { title, id, otp, target, len } = req.body
+      const { title, id, otp, target, len, emails } = req.body
 
       console.log(`${endpoint} - ${target} - ${id}`)
 
       if (endpoint == "/send") {
         const otpGen = otpGenerator.generate(len || 6, { upperCaseAlphabets: false, lowerCaseAlphabets: false, specialChars: false })
-        sendOTP(target, title, otpGen)
+        sendOTP(target, title, otpGen, emails)
           .then(r => {
             db.storeOTP(id, otpGen, target)
               .then(r => {
