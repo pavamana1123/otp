@@ -84,7 +84,7 @@ async function main() {
             db.storeOTP(id, otpGen, target)
               .then(r => {
                 res.status(200).send(r)
-                console.log('eresp', r1, id, otpGen, target)
+                // console.log('eresp', r1, id, otpGen, target)
               }).catch((err) => {
                 res.status(500).send(err)
               })
