@@ -38,7 +38,7 @@ async function main() {
   const sendOTP = (target, title, otp, emails) => {
 
     if (emails && emails.length) {
-      return mail.send({
+      mail.send({
         from: adminMail,
         to: emails,
         subject: title || 'OTP from ISKCON Mysore',
