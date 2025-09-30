@@ -95,8 +95,10 @@ async function main() {
       } else if (endpoint == "/verify") {
         db.verifyOTP(id, otp)
           .then(r => {
+            console.log("otp verified")
             res.status(200).send(r)
           }).catch(({ status, error }) => {
+            console.log(status, error)
             res.status(status).send(error)
           })
       } else {

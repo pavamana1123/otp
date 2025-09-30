@@ -39,6 +39,7 @@ class DB {
     verifyOTP(id, otp){
 
         return new Promise((resolve, reject) => {
+            console.log(`select otp from otp where id='${id}'`)
             this.db.query(
                 `select otp from otp where id='${id}'`,
 
